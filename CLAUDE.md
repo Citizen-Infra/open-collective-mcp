@@ -36,6 +36,7 @@ These were discovered via introspection and may bite you when adding/modifying t
 - **editAccount** is used for editing both collectives and projects — projects are account subtypes. Requires the account `id` (not slug), so tools fetch the ID first.
 - **Updates** use `html` (not `markdown` or `body`) for content. The `createUpdate` mutation creates unpublished drafts — `publishUpdate` is a separate mutation.
 - **AccountReferenceInput** accepts either `{ slug }` or `{ id }` — we use `slug` for reads, `id` for mutations that require it.
+- **Variable types differ between queries:** `transactions()` takes `account: [AccountReferenceInput!]` (array), but `expenses()` takes `account: AccountReferenceInput` (singular). Similarly, `expenses.status` is `[ExpenseStatusFilter]` (array). Always introspect before assuming — the OC schema is inconsistent across queries.
 
 ## Adding a New Tool
 
