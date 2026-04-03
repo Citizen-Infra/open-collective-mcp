@@ -2,7 +2,7 @@
 
 ## Overview
 
-**open-collective-mcp** — MCP server for managing Open Collective pages for Harmonica and Citizen Infrastructure (CIBC) collectives. Both hosted by Social Change Nest.
+**open-collective-mcp** — MCP server for managing Open Collective pages via the GraphQL API v2. Works with any collective. 19 tools across 6 domains: profile, updates, projects, tiers, financial, members.
 
 ## Commands
 
@@ -42,14 +42,11 @@ src/
 - **GraphQL client:** Plain `fetch` against `https://api.opencollective.com/graphql/v2` with `Personal-Token` header
 - **Auth:** Bearer token (`API_KEY` env var) for MCP client auth; `OPEN_COLLECTIVE_TOKEN` for OC API auth
 
-## Collectives
-
-- **harmonica** — Harmonica open-source AI facilitation
-- **citizen-infra** — Citizen Infrastructure (CIBC)
-
 ## Deployment
 
-Railway (Nixpacks, auto-deploy from GitHub main). Env vars: `OPEN_COLLECTIVE_TOKEN`, `API_KEY`, `PORT` (set by Railway).
+Railway (Nixpacks, auto-deploy from GitHub `master`). Domain: `open-collective-mcp-production.up.railway.app`. Repo: `Citizen-Infra/open-collective-mcp`.
+
+Env vars: `OPEN_COLLECTIVE_TOKEN`, `API_KEY`, `PORT` (set by Railway).
 
 ## API Reference
 
