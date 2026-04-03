@@ -55,7 +55,7 @@ Health check: `GET /health` → `{"status":"ok"}`
 ## API Reference
 
 - GraphQL endpoint: `https://api.opencollective.com/graphql/v2`
-- Auth header: `Personal-Token: <token>`
+- Auth header: `Personal-Token: <token>` — token must have all scopes enabled (especially `account` for mutations)
 - Docs: https://developers.opencollective.com (new), https://graphql-docs-v2.opencollective.com (old)
 - **Rate limits:** 100 req/min with Personal Token, 10 req/min unauthenticated
 - **Pagination:** `limit` (default 10, max 1000) + `offset` on collection queries

@@ -19,7 +19,7 @@ Built by [Citizen Infra Builders Club](https://opencollective.com/citizen-infra)
 
 ### 1. Get an Open Collective Personal Token
 
-Go to your Open Collective account **Settings → For Developers → Personal Tokens**. The token inherits your account permissions — no scopes to configure. Rate limit: 100 requests/minute.
+Go to your Open Collective account **Settings → For Developers → Personal Tokens**. When creating the token, **enable all available scopes** — at minimum the `account` scope is required for write operations (creating projects, editing profiles, publishing updates). Without it, mutations will fail with "not allowed for operations in scope account." Rate limit: 100 requests/minute.
 
 ### 2. Deploy
 
