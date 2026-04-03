@@ -1,7 +1,7 @@
 {
   "name": "open-collective-mcp",
   "version": "0.1.0",
-  "description": "Open Collective MCP server — manage Harmonica and Citizen Infra collectives",
+  "description": "MCP server for managing Open Collective pages via GraphQL API v2",
   "type": "module",
   "scripts": {
     "build": "tsc",
