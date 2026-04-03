@@ -1,6 +1,6 @@
 # Open Collective MCP Server
 
-MCP server for managing [Open Collective](https://opencollective.com) pages via the GraphQL API v2. Built for [Harmonica](https://opencollective.com/harmonica) and [Citizen Infrastructure](https://opencollective.com/citizen-infra) collectives (hosted by [Social Change Nest](https://www.socialchangenest.org/)).
+MCP server for managing [Open Collective](https://opencollective.com) pages via the GraphQL API v2. Works with any collective — manage profiles, publish updates, create projects, configure tiers, track finances, and list members.
 
 ## Tools (19)
 
