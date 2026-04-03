@@ -26,7 +26,7 @@ export const GET_BALANCE = `
 `;
 
 export const LIST_TRANSACTIONS = `
-  query ListTransactions($account: AccountReferenceInput!, $limit: Int, $offset: Int, $type: TransactionType, $dateFrom: DateTime, $dateTo: DateTime) {
+  query ListTransactions($account: [AccountReferenceInput!], $limit: Int, $offset: Int, $type: TransactionType, $dateFrom: DateTime, $dateTo: DateTime) {
     transactions(account: $account, limit: $limit, offset: $offset, type: $type, dateFrom: $dateFrom, dateTo: $dateTo) {
       totalCount
       nodes {
@@ -52,7 +52,7 @@ export const LIST_TRANSACTIONS = `
 `;
 
 export const LIST_EXPENSES = `
-  query ListExpenses($account: AccountReferenceInput!, $limit: Int, $offset: Int, $status: ExpenseStatusFilter, $dateFrom: DateTime, $dateTo: DateTime) {
+  query ListExpenses($account: [AccountReferenceInput!], $limit: Int, $offset: Int, $status: ExpenseStatusFilter, $dateFrom: DateTime, $dateTo: DateTime) {
     expenses(account: $account, limit: $limit, offset: $offset, status: $status, dateFrom: $dateFrom, dateTo: $dateTo) {
       totalCount
       nodes {
