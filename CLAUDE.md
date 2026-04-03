@@ -56,5 +56,7 @@ Health check: `GET /health` → `{"status":"ok"}`
 
 - GraphQL endpoint: `https://api.opencollective.com/graphql/v2`
 - Auth header: `Personal-Token: <token>`
-- Docs: https://graphql-docs-v2.opencollective.com
+- Docs: https://developers.opencollective.com (new), https://graphql-docs-v2.opencollective.com (old)
+- **Rate limits:** 100 req/min with Personal Token, 10 req/min unauthenticated
+- **Pagination:** `limit` (default 10, max 1000) + `offset` on collection queries
 - Introspect schema: `curl -s -X POST https://api.opencollective.com/graphql/v2 -H "Content-Type: application/json" -d '{"query":"{ __type(name: \"TypeName\") { ... } }"}'`
