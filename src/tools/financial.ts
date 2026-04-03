@@ -61,11 +61,11 @@ export function registerFinancialTools(server: McpServer): void {
     },
   }, async ({ collective, limit, offset, status, dateFrom, dateTo }) => {
     const vars: Record<string, unknown> = {
-      account: [{ slug: collective }],
+      account: { slug: collective },
       limit: limit ?? 20,
       offset: offset ?? 0,
     };
-    if (status !== undefined) vars.status = status;
+    if (status !== undefined) vars.status = [status];
     if (dateFrom !== undefined) vars.dateFrom = dateFrom;
     if (dateTo !== undefined) vars.dateTo = dateTo;
 

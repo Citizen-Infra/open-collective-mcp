@@ -52,7 +52,7 @@ export const LIST_TRANSACTIONS = `
 `;
 
 export const LIST_EXPENSES = `
-  query ListExpenses($account: [AccountReferenceInput!], $limit: Int, $offset: Int, $status: ExpenseStatusFilter, $dateFrom: DateTime, $dateTo: DateTime) {
+  query ListExpenses($account: AccountReferenceInput, $limit: Int!, $offset: Int!, $status: [ExpenseStatusFilter], $dateFrom: DateTime, $dateTo: DateTime) {
     expenses(account: $account, limit: $limit, offset: $offset, status: $status, dateFrom: $dateFrom, dateTo: $dateTo) {
       totalCount
       nodes {
