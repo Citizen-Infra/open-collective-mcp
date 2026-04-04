@@ -57,15 +57,17 @@ export function registerTierTools(server: McpServer): void {
     inputSchema: {
       id: z.string().describe('Tier ID'),
       name: z.string().optional().describe('New name'),
-      description: z.string().optional().describe('New description'),
+      description: z.string().optional().describe('New short description'),
+      longDescription: z.string().optional().describe('New long description (HTML)'),
       amountInCents: z.number().optional().describe('New amount in cents'),
       currency: z.string().optional().describe('Currency code'),
       maxQuantity: z.number().optional().describe('New max quantity'),
     },
-  }, async ({ id, name, description, amountInCents, currency, maxQuantity }) => {
+  }, async ({ id, name, description, longDescription, amountInCents, currency, maxQuantity }) => {
     const tier: Record<string, unknown> = { id };
     if (name !== undefined) tier.name = name;
     if (description !== undefined) tier.description = description;
+    if (longDescription !== undefined) tier.longDescription = longDescription;
     if (amountInCents !== undefined) tier.amount = { valueInCents: amountInCents, currency: currency ?? 'GBP' };
     if (maxQuantity !== undefined) tier.maxQuantity = maxQuantity;
 

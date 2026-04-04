@@ -9,6 +9,7 @@ export const LIST_TIERS = `
             slug
             name
             description
+            longDescription
             type
             amountType
             amount {
@@ -35,6 +36,7 @@ export const CREATE_TIER = `
       slug
       name
       description
+      longDescription
       type
       amountType
       amount {
@@ -53,6 +55,7 @@ export const EDIT_TIER = `
       slug
       name
       description
+      longDescription
       type
       amountType
       amount {
