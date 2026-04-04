@@ -36,18 +36,14 @@ export const LIST_TIERS = `
             invoiceTemplate
             requireAddress
             stats {
-              totalDonated {
+              id
+              totalAmountReceived {
                 valueInCents
                 currency
               }
-              totalRecurringDonations {
+              recurringAmount {
                 valueInCents
                 currency
-              }
-              contributors {
-                all
-                recurring
-                oneTime
               }
             }
           }
