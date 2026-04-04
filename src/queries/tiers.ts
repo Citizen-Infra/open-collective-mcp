@@ -10,18 +10,46 @@ export const LIST_TIERS = `
             name
             description
             longDescription
+            videoUrl
+            button
             type
             amountType
             amount {
               valueInCents
               currency
             }
+            minimumAmount {
+              valueInCents
+              currency
+            }
             frequency
+            presets
             goal {
               valueInCents
               currency
             }
             maxQuantity
+            availableQuantity
+            endsAt
+            useStandalonePage
+            singleTicket
+            invoiceTemplate
+            requireAddress
+            stats {
+              totalDonated {
+                valueInCents
+                currency
+              }
+              totalRecurringDonations {
+                valueInCents
+                currency
+              }
+              contributors {
+                all
+                recurring
+                oneTime
+              }
+            }
           }
         }
       }
@@ -37,13 +65,29 @@ export const CREATE_TIER = `
       name
       description
       longDescription
+      videoUrl
+      button
       type
       amountType
       amount {
         valueInCents
         currency
       }
+      minimumAmount {
+        valueInCents
+        currency
+      }
       frequency
+      presets
+      goal {
+        valueInCents
+        currency
+      }
+      maxQuantity
+      availableQuantity
+      useStandalonePage
+      singleTicket
+      invoiceTemplate
     }
   }
 `;
@@ -56,13 +100,29 @@ export const EDIT_TIER = `
       name
       description
       longDescription
+      videoUrl
+      button
       type
       amountType
       amount {
         valueInCents
         currency
       }
+      minimumAmount {
+        valueInCents
+        currency
+      }
       frequency
+      presets
+      goal {
+        valueInCents
+        currency
+      }
+      maxQuantity
+      availableQuantity
+      useStandalonePage
+      singleTicket
+      invoiceTemplate
     }
   }
 `;
