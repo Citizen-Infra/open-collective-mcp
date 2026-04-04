@@ -53,7 +53,7 @@ Each user deploys their own instance with their own Open Collective token — th
 
 #### Option A: Railway (remote HTTP)
 
-[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/deploy/_HIxeJ?referralCode=FtFaFo)
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/deploy/open-collective-mcp)
 
 Set these environment variables:
 
