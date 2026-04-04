@@ -47,7 +47,9 @@ Go to your Open Collective account **Settings → For Developers → Personal To
 
 Rate limit: 100 requests/minute with a Personal Token.
 
-### 2. Deploy
+### 2. Deploy your own instance
+
+Each user deploys their own instance with their own Open Collective token — the server operates on behalf of whoever's token is configured. You can host it on any platform that runs Node.js (Railway, Fly.io, Render, a VPS, etc.) or run it locally.
 
 #### Option A: Railway (remote HTTP)
 
