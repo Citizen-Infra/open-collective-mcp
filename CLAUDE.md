@@ -17,6 +17,8 @@ npm start              # Run compiled server (dist/index.js)
 
 Always run `npm run build` before pushing — Railway runs `tsc` during build.
 
+No test suite — verify changes by building and manually testing against the OC API.
+
 ## Architecture
 
 Two-layer separation: `tools/` files define MCP tool schemas and handlers, `queries/` files hold raw GraphQL strings. `graphql.ts` is the single point of contact with the OC API — all tools call `gql<T>(query, variables)`.
@@ -47,7 +49,7 @@ These were discovered via introspection and may bite you when adding/modifying t
 
 ## Deployment
 
-Railway (Nixpacks, auto-deploy from GitHub `master`). Domain: `open-collective-mcp-production.up.railway.app`. Repo: `Citizen-Infra/open-collective-mcp`.
+Railway (Nixpacks, auto-deploy from GitHub `master`). Domain: `open-collective-mcp-production.up.railway.app`. Repo: `Citizen-Infra/open-collective-mcp`. Railway template: `https://railway.com/deploy/open-collective-mcp`.
 
 Env vars: `OPEN_COLLECTIVE_TOKEN`, `API_KEY`, `PORT` (set by Railway).
 
