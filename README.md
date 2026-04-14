@@ -131,6 +131,14 @@ npm run build            # compile TypeScript
 - **Auth:** Two layers — `Personal-Token` header for OC API; Bearer token (`API_KEY`) for MCP client auth in HTTP mode
 - **Structure:** Two-layer separation — `tools/` define MCP schemas and handlers, `queries/` hold raw GraphQL strings
 
+## Roadmap
+
+- [ ] Publish to npm for `npx -y open-collective-mcp` install
+- [ ] One-command install via `npx add-mcp`
+- [ ] Expense submission and approval tools
+- [ ] Event management tools
+- [ ] Webhook support for real-time notifications
+
 ## Contributing
 
 Contributions are welcome! This project uses TypeScript with strict mode enabled.
