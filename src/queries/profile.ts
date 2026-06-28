@@ -47,11 +47,8 @@ export const EDIT_ACCOUNT = `
 export const UPDATE_SOCIAL_LINKS = `
   mutation UpdateSocialLinks($account: AccountReferenceInput!, $socialLinks: [SocialLinkInput!]!) {
     updateSocialLinks(account: $account, socialLinks: $socialLinks) {
-      id
-      socialLinks {
-        type
-        url
-      }
+      type
+      url
     }
   }
 `;

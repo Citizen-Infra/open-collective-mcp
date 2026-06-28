@@ -56,7 +56,7 @@ export function registerProfileTools(server: McpServer): void {
       })).describe('Social links to set'),
     },
   }, async ({ collective, links }) => {
-    const data = await gql<{ updateSocialLinks: Record<string, unknown> }>(UPDATE_SOCIAL_LINKS, {
+    const data = await gql<{ updateSocialLinks: unknown[] }>(UPDATE_SOCIAL_LINKS, {
       account: { slug: collective },
       socialLinks: links,
     });
