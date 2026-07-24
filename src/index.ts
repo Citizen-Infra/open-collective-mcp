@@ -54,15 +54,59 @@ async function startHttpServer() {
     res.json({ status: 'ok' });
   });
 
-  const sessions = new Map<string, StreamableHTTPServerTransport>();
+  interface Session {
+    transport: StreamableHTTPServerTransport;
+    server: McpServer;
+    lastActivity: number;
+  }
+
+  const sessions = new Map<string, Session>();
+  const SESSION_TTL_MS = 10 * 60 * 1000; // evict a session after 10 min idle
+  const MAX_SESSIONS = 100; // hard ceiling on concurrent sessions
+  const SWEEP_INTERVAL_MS = 60 * 1000;
+
+  function closeSession(id: string): void {
+    const session = sessions.get(id);
+    if (!session) return;
+    sessions.delete(id);
+    // Dispose the transport and its McpServer so the per-session tool
+    // registrations can be garbage collected.
+    void session.transport.close().catch(() => {});
+    void session.server.close().catch(() => {});
+  }
+
+  // Backstop for clients that disconnect without sending a session-terminating
+  // DELETE (their onclose never fires): sweep idle sessions so the map cannot
+  // grow unbounded.
+  const sweep = setInterval(() => {
+    const now = Date.now();
+    for (const [id, session] of sessions) {
+      if (now - session.lastActivity > SESSION_TTL_MS) closeSession(id);
+    }
+  }, SWEEP_INTERVAL_MS);
+  sweep.unref(); // don't keep the event loop alive
 
   app.all('/mcp', authMiddleware, async (req, res) => {
     const existingSessionId = req.headers['mcp-session-id'] as string | undefined;
 
     if (existingSessionId && sessions.has(existingSessionId)) {
-      const transport = sessions.get(existingSessionId)!;
-      await transport.handleRequest(req, res, req.body);
+      const session = sessions.get(existingSessionId)!;
+      session.lastActivity = Date.now();
+      await session.transport.handleRequest(req, res, req.body);
       return;
+    }
+
+    // Evict the least-recently-used session if at capacity.
+    if (sessions.size >= MAX_SESSIONS) {
+      let oldestId: string | undefined;
+      let oldest = Infinity;
+      for (const [id, session] of sessions) {
+        if (session.lastActivity < oldest) {
+          oldest = session.lastActivity;
+          oldestId = id;
+        }
+      }
+      if (oldestId) closeSession(oldestId);
     }
 
     const transport = new StreamableHTTPServerTransport({
@@ -75,7 +119,11 @@ async function startHttpServer() {
 
     const newSessionId = res.getHeader('mcp-session-id') as string | undefined;
     if (newSessionId) {
-      sessions.set(newSessionId, transport);
+      sessions.set(newSessionId, {
+        transport,
+        server: sessionServer,
+        lastActivity: Date.now(),
+      });
       transport.onclose = () => sessions.delete(newSessionId);
     }
   });
