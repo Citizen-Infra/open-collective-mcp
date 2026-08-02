@@ -7,9 +7,9 @@ export function registerProjectTools(server: McpServer): void {
   server.registerTool('oc-list-projects', {
     title: 'List Projects',
     description: 'List projects under a collective.',
-    inputSchema: {
+    inputSchema: z.object({
       collective: z.string().describe('Parent collective slug'),
-    },
+    }),
   }, async ({ collective }) => {
     const data = await gql<{ account: { childrenAccounts: { totalCount: number; nodes: unknown[] } } }>(
       LIST_PROJECTS, { slug: collective },
@@ -25,9 +25,9 @@ export function registerProjectTools(server: McpServer): void {
   server.registerTool('oc-get-project', {
     title: 'Get Project',
     description: 'Read a single project by its slug.',
-    inputSchema: {
+    inputSchema: z.object({
       projectSlug: z.string().describe('Project slug (e.g., "ai-agents-avatars")'),
-    },
+    }),
   }, async ({ projectSlug }) => {
     const data = await gql<{ account: Record<string, unknown> }>(GET_PROJECT, { slug: projectSlug });
     return {
@@ -38,13 +38,13 @@ export function registerProjectTools(server: McpServer): void {
   server.registerTool('oc-create-project', {
     title: 'Create Project',
     description: 'Create a new project under a collective.',
-    inputSchema: {
+    inputSchema: z.object({
       collective: z.string().describe('Parent collective slug'),
       name: z.string().describe('Project name'),
       slug: z.string().describe('Project slug (URL-friendly)'),
       description: z.string().describe('Short description'),
       tags: z.array(z.string()).optional().describe('Tags'),
-    },
+    }),
   }, async ({ collective, name, slug, description, tags }) => {
     const input: Record<string, unknown> = { name, slug, description };
     if (tags !== undefined) input.tags = tags;
@@ -61,13 +61,13 @@ export function registerProjectTools(server: McpServer): void {
   server.registerTool('oc-edit-project', {
     title: 'Edit Project',
     description: 'Update a project (name, description, tags). Uses editAccount internally.',
-    inputSchema: {
+    inputSchema: z.object({
       projectSlug: z.string().describe('Project slug'),
       name: z.string().optional().describe('New name'),
       description: z.string().optional().describe('New short description'),
       longDescription: z.string().optional().describe('New long description (HTML)'),
       tags: z.array(z.string()).optional().describe('New tags'),
-    },
+    }),
   }, async ({ projectSlug, ...fields }) => {
     const { account } = await gql<{ account: { id: string } }>(
       `query { account(slug: "${projectSlug}") { id } }`,

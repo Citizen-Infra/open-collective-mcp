@@ -7,9 +7,9 @@ export function registerProfileTools(server: McpServer): void {
   server.registerTool('oc-get-collective', {
     title: 'Get Collective',
     description: 'Read an Open Collective profile — name, description, image, social links, balance, settings.',
-    inputSchema: {
+    inputSchema: z.object({
       collective: z.string().describe('Collective slug (e.g., "harmonica" or "citizen-infra")'),
-    },
+    }),
   }, async ({ collective }) => {
     const data = await gql<{ account: Record<string, unknown> }>(GET_COLLECTIVE, { slug: collective });
     return {
@@ -20,14 +20,14 @@ export function registerProfileTools(server: McpServer): void {
   server.registerTool('oc-edit-collective', {
     title: 'Edit Collective',
     description: 'Update collective profile fields — name, description, long description, image URL, tags.',
-    inputSchema: {
+    inputSchema: z.object({
       collective: z.string().describe('Collective slug'),
       name: z.string().optional().describe('New name'),
       description: z.string().optional().describe('Short description'),
       longDescription: z.string().optional().describe('Long description (HTML)'),
       image: z.string().optional().describe('Image URL'),
       tags: z.array(z.string()).optional().describe('Tags'),
-    },
+    }),
   }, async ({ collective, ...fields }) => {
     const { account } = await gql<{ account: { id: string } }>(
       `query { account(slug: "${collective}") { id } }`,
@@ -48,13 +48,13 @@ export function registerProfileTools(server: McpServer): void {
   server.registerTool('oc-update-social-links', {
     title: 'Update Social Links',
     description: 'Set social links on a collective. Replaces all existing links. Types: WEBSITE, GITHUB, TWITTER, LINKEDIN, DISCORD, BLUESKY, MASTODON, YOUTUBE, FACEBOOK, INSTAGRAM, TIKTOK, SLACK, etc.',
-    inputSchema: {
+    inputSchema: z.object({
       collective: z.string().describe('Collective slug'),
       links: z.array(z.object({
         type: z.string().describe('Link type (e.g., WEBSITE, GITHUB, TWITTER)'),
         url: z.string().describe('URL'),
       })).describe('Social links to set'),
-    },
+    }),
   }, async ({ collective, links }) => {
     const data = await gql<{ updateSocialLinks: unknown[] }>(UPDATE_SOCIAL_LINKS, {
       account: { slug: collective },
