@@ -1,7 +1,7 @@
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
-import crypto from 'node:crypto';
+import { createMcpExpressApp } from '@modelcontextprotocol/express';
+import { toNodeHandler } from '@modelcontextprotocol/node';
+import { createMcpHandler, McpServer } from '@modelcontextprotocol/server';
+import { serveStdio } from '@modelcontextprotocol/server/stdio';
 import express from 'express';
 
 import { registerProfileTools } from './tools/profile.js';
@@ -47,86 +47,39 @@ function authMiddleware(
 }
 
 async function startHttpServer() {
-  const app = express();
-  app.use(express.json());
+  // host '0.0.0.0' because Railway routes to the container from outside. Note
+  // this also means createMcpExpressApp does NOT auto-apply its DNS-rebinding
+  // protection, which it only does for 127.0.0.1 / localhost / ::1. That
+  // matches the behaviour of the previous plain-Express setup, which validated
+  // no hosts either; the endpoint's real gate is the Bearer check below.
+  // Tightening it with allowedHosts is a separate decision, not part of a
+  // transport migration.
+  const app = createMcpExpressApp({ host: '0.0.0.0' });
 
   app.get('/health', (_req, res) => {
     res.json({ status: 'ok' });
   });
 
-  interface Session {
-    transport: StreamableHTTPServerTransport;
-    server: McpServer;
-    lastActivity: number;
-  }
-
-  const sessions = new Map<string, Session>();
-  const SESSION_TTL_MS = 10 * 60 * 1000; // evict a session after 10 min idle
-  const MAX_SESSIONS = 100; // hard ceiling on concurrent sessions
-  const SWEEP_INTERVAL_MS = 60 * 1000;
-
-  function closeSession(id: string): void {
-    const session = sessions.get(id);
-    if (!session) return;
-    sessions.delete(id);
-    // Dispose the transport and its McpServer so the per-session tool
-    // registrations can be garbage collected.
-    void session.transport.close().catch(() => {});
-    void session.server.close().catch(() => {});
-  }
-
-  // Backstop for clients that disconnect without sending a session-terminating
-  // DELETE (their onclose never fires): sweep idle sessions so the map cannot
-  // grow unbounded.
-  const sweep = setInterval(() => {
-    const now = Date.now();
-    for (const [id, session] of sessions) {
-      if (now - session.lastActivity > SESSION_TTL_MS) closeSession(id);
-    }
-  }, SWEEP_INTERVAL_MS);
-  sweep.unref(); // don't keep the event loop alive
-
-  app.all('/mcp', authMiddleware, async (req, res) => {
-    const existingSessionId = req.headers['mcp-session-id'] as string | undefined;
-
-    if (existingSessionId && sessions.has(existingSessionId)) {
-      const session = sessions.get(existingSessionId)!;
-      session.lastActivity = Date.now();
-      await session.transport.handleRequest(req, res, req.body);
-      return;
-    }
-
-    // Evict the least-recently-used session if at capacity.
-    if (sessions.size >= MAX_SESSIONS) {
-      let oldestId: string | undefined;
-      let oldest = Infinity;
-      for (const [id, session] of sessions) {
-        if (session.lastActivity < oldest) {
-          oldest = session.lastActivity;
-          oldestId = id;
-        }
-      }
-      if (oldestId) closeSession(oldestId);
-    }
-
-    const transport = new StreamableHTTPServerTransport({
-      sessionIdGenerator: () => crypto.randomUUID(),
-    });
-    const sessionServer = createServer();
-    await sessionServer.connect(transport);
-
-    await transport.handleRequest(req, res, req.body);
-
-    const newSessionId = res.getHeader('mcp-session-id') as string | undefined;
-    if (newSessionId) {
-      sessions.set(newSessionId, {
-        transport,
-        server: sessionServer,
-        lastActivity: Date.now(),
-      });
-      transport.onclose = () => sessions.delete(newSessionId);
-    }
-  });
+  // The whole session layer this replaced is gone. Under the 2026-07-28 spec
+  // Mcp-Session-Id is retired (SEP-2567) and createMcpHandler builds a fresh
+  // server per request instead.
+  //
+  // Two reasons not to bring any of it back.
+  //
+  // It leaked. The session Map was cleaned only by transport.onclose, which
+  // never fires for a Streamable-HTTP client that disconnects without a
+  // terminating DELETE, so every abandoned session held a transport plus a
+  // whole McpServer: ~50 MB to ~2.3 GB over ~26 days in production (#11,
+  // d5af93d). That was fixed with a TTL sweep and an LRU cap, and this change
+  // deletes the fix along with the thing it was guarding, because with no
+  // sessions there is no map to bound.
+  //
+  // It did not scale. The Map was in-process, so sessions pinned to one
+  // container and the service could not run a second Railway replica without
+  // breaking clients mid-conversation. It can now.
+  const handler = createMcpHandler(() => createServer());
+  const node = toNodeHandler(handler);
+  app.all('/mcp', authMiddleware, (req, res) => void node(req, res, req.body));
 
   const port = process.env.PORT || 3000;
   app.listen(port, () => {
@@ -135,9 +88,9 @@ async function startHttpServer() {
 }
 
 async function startStdioServer() {
-  const server = createServer();
-  const transport = new StdioServerTransport();
-  await server.connect(transport);
+  // v2 replaces `server.connect(new StdioServerTransport())` with a factory;
+  // serveStdio owns the transport and the server lifecycle.
+  serveStdio(() => createServer());
   console.error('Open Collective MCP Server running on stdio');
 }
 

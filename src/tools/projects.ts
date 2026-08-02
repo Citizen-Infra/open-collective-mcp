@@ -1,4 +1,4 @@
-import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import type { McpServer } from '@modelcontextprotocol/server';
 import { z } from 'zod';
 import { gql } from '../graphql.js';
 import { LIST_PROJECTS, GET_PROJECT, CREATE_PROJECT, EDIT_PROJECT } from '../queries/projects.js';

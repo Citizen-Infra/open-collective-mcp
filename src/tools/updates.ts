@@ -1,4 +1,4 @@
-import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import type { McpServer } from '@modelcontextprotocol/server';
 import { z } from 'zod';
 import { gql } from '../graphql.js';
 import { LIST_UPDATES, GET_UPDATE, CREATE_UPDATE, EDIT_UPDATE, PUBLISH_UPDATE } from '../queries/updates.js';

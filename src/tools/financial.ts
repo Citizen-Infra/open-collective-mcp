@@ -1,4 +1,4 @@
-import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import type { McpServer } from '@modelcontextprotocol/server';
 import { z } from 'zod';
 import { gql } from '../graphql.js';
 import { GET_BALANCE, LIST_TRANSACTIONS, LIST_EXPENSES } from '../queries/financial.js';

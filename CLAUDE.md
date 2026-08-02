@@ -23,9 +23,15 @@ No test suite — verify changes by building and manually testing against the OC
 
 Two-layer separation: `tools/` files define MCP tool schemas and handlers, `queries/` files hold raw GraphQL strings. `graphql.ts` is the single point of contact with the OC API — all tools call `gql<T>(query, variables)`.
 
-Each tool domain has a `register*Tools(server: McpServer)` function called from `createServer()` in `index.ts`. The server factory is called once per MCP session (not once per request).
+Each tool domain has a `register*Tools(server: McpServer)` function called from `createServer()` in `index.ts`. **The server factory is called once per HTTP request** (it used to be once per session, before the SDK v2 migration).
 
-**Transport:** `index.ts` checks `process.env.PORT` — if set, runs Express with StreamableHTTPServerTransport (Railway); otherwise, runs StdioServerTransport (local dev). HTTP mode uses a session map keyed by `mcp-session-id` header, creating a fresh `McpServer` per session.
+**Transport:** `index.ts` checks `process.env.PORT` — if set, serves over HTTP via `createMcpExpressApp` + `createMcpHandler` + `toNodeHandler`; otherwise `serveStdio` (local dev). Both take a factory rather than a built server.
+
+**There is no session state.** Under the 2026-07-28 spec `Mcp-Session-Id` is retired ([SEP-2567](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2567)) and `createMcpHandler` builds a fresh `McpServer` per request. The old code kept an in-memory `Map` of transports keyed by that header, which meant sessions pinned to one container; **the service can now be scaled to more than one replica.** Do not reintroduce per-session state in this process without reading that through.
+
+**DNS rebinding protection is off.** `createMcpExpressApp` only auto-applies it for `127.0.0.1`/`localhost`/`::1`, and Railway needs `0.0.0.0`, so the server logs a warning about it on boot. That is expected and matches the pre-migration behaviour, which validated no hosts either. The gate on `/mcp` is the `API_KEY` Bearer check. Pass `allowedHosts` if that ever needs tightening.
+
+**Tool `inputSchema` still uses the deprecated raw-shape form** (`{ field: z.string() }`). v2 auto-wraps it and the types accept it, but they ask for `z.object({...})`. Tracked in #12.
 
 **Auth layers:** Two separate tokens — `OPEN_COLLECTIVE_TOKEN` (Personal Token for OC API, sent as `Personal-Token` header) and `API_KEY` (Bearer token for MCP client auth, checked in Express middleware). Stdio mode doesn't use `API_KEY`.
 
