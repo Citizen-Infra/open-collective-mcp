@@ -7,9 +7,9 @@ export function registerTierTools(server: McpServer): void {
   server.registerTool('oc-list-tiers', {
     title: 'List Tiers',
     description: 'List contribution tiers for a collective. Includes stats, available quantity, and full configuration.',
-    inputSchema: {
+    inputSchema: z.object({
       collective: z.string().describe('Collective slug'),
-    },
+    }),
   }, async ({ collective }) => {
     const data = await gql<{ account: { tiers: { totalCount: number; nodes: unknown[] } } }>(
       LIST_TIERS, { slug: collective },
@@ -25,7 +25,7 @@ export function registerTierTools(server: McpServer): void {
   server.registerTool('oc-create-tier', {
     title: 'Create Tier',
     description: 'Create a new contribution tier. Types: TIER, MEMBERSHIP, DONATION, TICKET, SERVICE, PRODUCT. Frequencies: MONTHLY, YEARLY, ONETIME, FLEXIBLE.',
-    inputSchema: {
+    inputSchema: z.object({
       collective: z.string().describe('Collective slug'),
       name: z.string().describe('Tier name'),
       type: z.enum(['TIER', 'MEMBERSHIP', 'DONATION', 'TICKET', 'SERVICE', 'PRODUCT']).describe('Tier type'),
@@ -43,7 +43,7 @@ export function registerTierTools(server: McpServer): void {
       useStandalonePage: z.boolean().optional().describe('Use a standalone page for this tier'),
       invoiceTemplate: z.string().optional().describe('Custom invoice template'),
       singleTicket: z.boolean().optional().describe('Single ticket mode (for TICKET type)'),
-    },
+    }),
   }, async ({ collective, name, type, amountType, frequency, amountInCents, currency, description, longDescription, button, goalInCents, presets, minimumAmountInCents, maxQuantity, useStandalonePage, invoiceTemplate, singleTicket }) => {
     const cur = currency ?? 'GBP';
     const tier: Record<string, unknown> = { name, type, amountType, frequency };
@@ -71,7 +71,7 @@ export function registerTierTools(server: McpServer): void {
   server.registerTool('oc-edit-tier', {
     title: 'Edit Tier',
     description: 'Update an existing contribution tier.',
-    inputSchema: {
+    inputSchema: z.object({
       id: z.string().describe('Tier ID'),
       name: z.string().optional().describe('New name'),
       description: z.string().optional().describe('New short description'),
@@ -87,7 +87,7 @@ export function registerTierTools(server: McpServer): void {
       useStandalonePage: z.boolean().optional().describe('Use a standalone page for this tier'),
       invoiceTemplate: z.string().optional().describe('Custom invoice template'),
       singleTicket: z.boolean().optional().describe('Single ticket mode'),
-    },
+    }),
   }, async ({ id, name, description, longDescription, button, videoUrl, amountInCents, currency, goalInCents, presets, minimumAmountInCents, maxQuantity, useStandalonePage, invoiceTemplate, singleTicket }) => {
     const cur = currency ?? 'GBP';
     const tier: Record<string, unknown> = { id };

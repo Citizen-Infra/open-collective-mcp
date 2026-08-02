@@ -7,13 +7,13 @@ export function registerMemberTools(server: McpServer): void {
   server.registerTool('oc-list-members', {
     title: 'List Members',
     description: 'List members/contributors of a collective. Roles: ADMIN, BACKER, CONTRIBUTOR, HOST, MEMBER, FOLLOWER.',
-    inputSchema: {
+    inputSchema: z.object({
       collective: z.string().describe('Collective slug'),
       limit: z.number().optional().describe('Max results (default 50)'),
       offset: z.number().optional().describe('Offset for pagination'),
       role: z.array(z.enum(['ADMIN', 'BACKER', 'CONTRIBUTOR', 'HOST', 'MEMBER', 'FOLLOWER', 'ATTENDEE', 'ACCOUNTANT']))
         .optional().describe('Filter by role(s)'),
-    },
+    }),
   }, async ({ collective, limit, offset, role }) => {
     const vars: Record<string, unknown> = {
       slug: collective,

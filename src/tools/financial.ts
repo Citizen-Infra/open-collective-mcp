@@ -7,9 +7,9 @@ export function registerFinancialTools(server: McpServer): void {
   server.registerTool('oc-get-balance', {
     title: 'Get Balance',
     description: 'Get current balance and financial summary for a collective.',
-    inputSchema: {
+    inputSchema: z.object({
       collective: z.string().describe('Collective slug'),
-    },
+    }),
   }, async ({ collective }) => {
     const data = await gql<{ account: Record<string, unknown> }>(GET_BALANCE, { slug: collective });
     return {
@@ -20,14 +20,14 @@ export function registerFinancialTools(server: McpServer): void {
   server.registerTool('oc-list-transactions', {
     title: 'List Transactions',
     description: 'List transactions for a collective with optional filters.',
-    inputSchema: {
+    inputSchema: z.object({
       collective: z.string().describe('Collective slug'),
       limit: z.number().optional().describe('Max results (default 20)'),
       offset: z.number().optional().describe('Offset for pagination'),
       type: z.enum(['DEBIT', 'CREDIT']).optional().describe('Filter by type'),
       dateFrom: z.string().optional().describe('Start date (ISO 8601)'),
       dateTo: z.string().optional().describe('End date (ISO 8601)'),
-    },
+    }),
   }, async ({ collective, limit, offset, type, dateFrom, dateTo }) => {
     const vars: Record<string, unknown> = {
       account: [{ slug: collective }],
@@ -50,7 +50,7 @@ export function registerFinancialTools(server: McpServer): void {
   server.registerTool('oc-list-expenses', {
     title: 'List Expenses',
     description: 'List expenses for a collective with optional filters. Statuses: DRAFT, PENDING, APPROVED, PAID, REJECTED, etc.',
-    inputSchema: {
+    inputSchema: z.object({
       collective: z.string().describe('Collective slug'),
       limit: z.number().optional().describe('Max results (default 20)'),
       offset: z.number().optional().describe('Offset for pagination'),
@@ -58,7 +58,7 @@ export function registerFinancialTools(server: McpServer): void {
         .describe('Filter by status'),
       dateFrom: z.string().optional().describe('Start date (ISO 8601)'),
       dateTo: z.string().optional().describe('End date (ISO 8601)'),
-    },
+    }),
   }, async ({ collective, limit, offset, status, dateFrom, dateTo }) => {
     const vars: Record<string, unknown> = {
       account: { slug: collective },
