@@ -1,7 +1,7 @@
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
-import crypto from 'node:crypto';
+import { createMcpExpressApp } from '@modelcontextprotocol/express';
+import { toNodeHandler } from '@modelcontextprotocol/node';
+import { createMcpHandler, McpServer } from '@modelcontextprotocol/server';
+import { serveStdio } from '@modelcontextprotocol/server/stdio';
 import express from 'express';
 
 import { registerProfileTools } from './tools/profile.js';
@@ -47,38 +47,31 @@ function authMiddleware(
 }
 
 async function startHttpServer() {
-  const app = express();
-  app.use(express.json());
+  // host '0.0.0.0' because Railway routes to the container from outside. Note
+  // this also means createMcpExpressApp does NOT auto-apply its DNS-rebinding
+  // protection, which it only does for 127.0.0.1 / localhost / ::1. That
+  // matches the behaviour of the previous plain-Express setup, which validated
+  // no hosts either; the endpoint's real gate is the Bearer check below.
+  // Tightening it with allowedHosts is a separate decision, not part of a
+  // transport migration.
+  const app = createMcpExpressApp({ host: '0.0.0.0' });
 
   app.get('/health', (_req, res) => {
     res.json({ status: 'ok' });
   });
 
-  const sessions = new Map<string, StreamableHTTPServerTransport>();
-
-  app.all('/mcp', authMiddleware, async (req, res) => {
-    const existingSessionId = req.headers['mcp-session-id'] as string | undefined;
-
-    if (existingSessionId && sessions.has(existingSessionId)) {
-      const transport = sessions.get(existingSessionId)!;
-      await transport.handleRequest(req, res, req.body);
-      return;
-    }
-
-    const transport = new StreamableHTTPServerTransport({
-      sessionIdGenerator: () => crypto.randomUUID(),
-    });
-    const sessionServer = createServer();
-    await sessionServer.connect(transport);
-
-    await transport.handleRequest(req, res, req.body);
-
-    const newSessionId = res.getHeader('mcp-session-id') as string | undefined;
-    if (newSessionId) {
-      sessions.set(newSessionId, transport);
-      transport.onclose = () => sessions.delete(newSessionId);
-    }
-  });
+  // The whole session layer this replaced is gone. It was a Map keyed by the
+  // mcp-session-id header, a UUID generator, one McpServer kept alive per
+  // session, and an onclose handler to evict it. Under the 2026-07-28 spec
+  // Mcp-Session-Id is retired (SEP-2567) and createMcpHandler builds a fresh
+  // server per request instead.
+  //
+  // The practical consequence is not tidiness: that Map was in-memory, so
+  // sessions pinned to one container and the service could not be scaled to a
+  // second replica without breaking clients mid-conversation. It can now.
+  const handler = createMcpHandler(() => createServer());
+  const node = toNodeHandler(handler);
+  app.all('/mcp', authMiddleware, (req, res) => void node(req, res, req.body));
 
   const port = process.env.PORT || 3000;
   app.listen(port, () => {
@@ -87,9 +80,9 @@ async function startHttpServer() {
 }
 
 async function startStdioServer() {
-  const server = createServer();
-  const transport = new StdioServerTransport();
-  await server.connect(transport);
+  // v2 replaces `server.connect(new StdioServerTransport())` with a factory;
+  // serveStdio owns the transport and the server lifecycle.
+  serveStdio(() => createServer());
   console.error('Open Collective MCP Server running on stdio');
 }
 
