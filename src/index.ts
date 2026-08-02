@@ -60,15 +60,23 @@ async function startHttpServer() {
     res.json({ status: 'ok' });
   });
 
-  // The whole session layer this replaced is gone. It was a Map keyed by the
-  // mcp-session-id header, a UUID generator, one McpServer kept alive per
-  // session, and an onclose handler to evict it. Under the 2026-07-28 spec
+  // The whole session layer this replaced is gone. Under the 2026-07-28 spec
   // Mcp-Session-Id is retired (SEP-2567) and createMcpHandler builds a fresh
   // server per request instead.
   //
-  // The practical consequence is not tidiness: that Map was in-memory, so
-  // sessions pinned to one container and the service could not be scaled to a
-  // second replica without breaking clients mid-conversation. It can now.
+  // Two reasons not to bring any of it back.
+  //
+  // It leaked. The session Map was cleaned only by transport.onclose, which
+  // never fires for a Streamable-HTTP client that disconnects without a
+  // terminating DELETE, so every abandoned session held a transport plus a
+  // whole McpServer: ~50 MB to ~2.3 GB over ~26 days in production (#11,
+  // d5af93d). That was fixed with a TTL sweep and an LRU cap, and this change
+  // deletes the fix along with the thing it was guarding, because with no
+  // sessions there is no map to bound.
+  //
+  // It did not scale. The Map was in-process, so sessions pinned to one
+  // container and the service could not run a second Railway replica without
+  // breaking clients mid-conversation. It can now.
   const handler = createMcpHandler(() => createServer());
   const node = toNodeHandler(handler);
   app.all('/mcp', authMiddleware, (req, res) => void node(req, res, req.body));
